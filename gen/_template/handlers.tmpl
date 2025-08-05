@@ -154,7 +154,7 @@ func (s *{{ if $op.WebhookInfo }}WebhookServer{{ else }}{{ $serverName }}{{ end 
 					Err: err,
 				}
 				{{- if and $.Config.Error (not $op.WebhookInfo) }}
-				if encodeErr := encodeErrorResponse({{- if ne $serverName "Server" }}s.h.(Handler).NewError{{- else }}s.h.NewError{{- end }}(ctx, err), w, {{ if $otel }}span{{ end }}); encodeErr != nil {
+				if encodeErr := encodeErrorResponse(s.h.NewError(ctx, err), w, {{ if $otel }}span{{ end }}); encodeErr != nil {
 					defer recordError({{ printf "Security:%s" $securityName | quote }}, err)
 				}
 				{{- else }}
@@ -193,7 +193,7 @@ func (s *{{ if $op.WebhookInfo }}WebhookServer{{ else }}{{ $serverName }}{{ end 
 				Err: ogenerrors.ErrSecurityRequirementIsNotSatisfied,
 			}
 			{{- if and $.Config.Error (not $op.WebhookInfo) }}
-			if encodeErr := encodeErrorResponse({{- if ne $serverName "Server" }}s.h.(Handler).NewError{{- else }}s.h.NewError{{- end }}(ctx, err), w, {{ if $otel }}span{{ end }}); encodeErr != nil {
+			if encodeErr := encodeErrorResponse(s.h.NewError(ctx, err), w, {{ if $otel }}span{{ end }}); encodeErr != nil {
 				defer recordError({{ quote "Security" }}, err)
 			}
 			{{- else }}
@@ -289,7 +289,7 @@ func (s *{{ if $op.WebhookInfo }}WebhookServer{{ else }}{{ $serverName }}{{ end 
 			s.cfg.ErrorHandler(ctx, w, r, err)
 			return
 		}
-		if err := encodeErrorResponse({{- if ne $serverName "Server" }}s.h.(Handler).NewError{{- else }}s.h.NewError{{- end }}(ctx, err), w, {{ if $otel }}span{{ end }}); err != nil {
+		if err := encodeErrorResponse(s.h.NewError(ctx, err), w, {{ if $otel }}span{{ end }}); err != nil {
 			defer recordError("Internal", err)
 		}
 		{{- else }}

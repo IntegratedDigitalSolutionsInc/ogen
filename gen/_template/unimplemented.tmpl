@@ -20,6 +20,18 @@ func (Unimplemented{{ $group.Name }}Handler) {{ $op.Name }}(ctx context.Context 
 	return {{ if $op.Responses.DoPass }}r,{{ end }} ht.ErrNotImplemented
 }
 {{- end }}
+
+{{- if and $.ServerPerOperationGroup $.Error }}
+// NewError creates {{ $.ErrorGoType }} from error returned by handler.
+//
+// Used for common default response.
+func (Unimplemented{{ $group.Name }}Handler) NewError(ctx context.Context, err error) (r {{ $.ErrorGoType }}) {
+	{{- if $.ErrorType.DoPassByPointer }}
+	r = new({{ $.ErrorType.Go }})
+	{{- end }}
+	return r
+}
+{{- end }}
 {{- end }}
 
 {{- else }}

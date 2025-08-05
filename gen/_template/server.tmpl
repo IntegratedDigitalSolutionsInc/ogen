@@ -36,6 +36,12 @@ type {{ $group.Name }}Handler interface {
 	// {{ upper $op.Spec.HTTPMethod }} {{ $op.Spec.Path }}
 	{{ $op.Name }}(ctx context.Context {{ if $op.Request }}, req {{ $op.Request.GoType }}{{ end }}{{ if $op.Params }}, params {{ $op.Name }}Params {{ end }}) {{ $op.Responses.ResultTuple "" "" }}
 {{- end }}
+{{- if and $.ServerPerOperationGroup $.Error }}
+	// NewError creates {{ $.ErrorGoType }} from error returned by handler.
+	//
+	// Used for common default response.
+	NewError(ctx context.Context, err error) {{ $.ErrorGoType }}
+{{- end }}
 }
 
 {{- end}}
@@ -73,7 +79,7 @@ func New{{ $group.ServerName }}(h {{ $group.Name }}Handler, {{- if $.Securities 
 //
 // Used for common default response.
 func (s *{{ $group.ServerName }}) NewError(ctx context.Context, err error) {{ $.ErrorGoType }} {
-	return s.h.(Handler).NewError(ctx, err)
+	return s.h.NewError(ctx, err)
 }
 {{- end }}
 
