@@ -20,10 +20,18 @@ func BuildServerGroups(groups []*ir.OperationGroup, router Router) []ServerGroup
 	var serverGroups []ServerGroup
 
 	for _, group := range groups {
+		// Calculate MaxParametersCount specifically for this group
+		maxParametersCount := 0
+		for _, op := range group.Operations {
+			if count := op.PathParamsCount(); maxParametersCount < count {
+				maxParametersCount = count
+			}
+		}
+
 		// Filter router to only include operations from this group
 		filteredRouter := Router{
 			Tree:               RouteTree{},
-			MaxParametersCount: router.MaxParametersCount,
+			MaxParametersCount: maxParametersCount,
 		}
 
 		// Add routes for this group's operations
