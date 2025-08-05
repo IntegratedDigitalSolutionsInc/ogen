@@ -204,6 +204,17 @@ func (g *Generator) makeOps(ops []*openapi.Operation) error {
 	sortOperations(g.operations)
 	g.defaultOperations, g.operationGroups = groupOperations(g.operations)
 
+	// Validate that all operations have a group when ServerPerOperationGroup is enabled
+	if g.opt.Features != nil {
+		features, err := g.opt.Features.Build()
+		if err != nil {
+			return errors.Wrap(err, "build feature set")
+		}
+		if features.Has(ServerPerOperationGroup) && len(g.defaultOperations) > 0 {
+			return errors.New("server/per-operation-group feature requires all operations to have x-ogen-operation-group specified")
+		}
+	}
+
 	return nil
 }
 

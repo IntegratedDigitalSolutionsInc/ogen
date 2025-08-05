@@ -26,6 +26,8 @@ generator:
       - 'client/request/validation'
       # Enables validation of server responses
       - 'server/response/validation'
+      # Enables generation of separate server structs for each operation group
+      - 'server/per-operation-group'
       # Enables OpenTelemetry integration
       - 'ogen/otel'
       # Enables stub Handler generation

@@ -20,6 +20,8 @@ type OperationElem struct {
 	Operation *ir.Operation
 	// Config is the template configuration.
 	Config TemplateConfig
+	// ServerName is the server name for per-operation-group generation.
+	ServerName string
 }
 
 // RouterElem is variable helper for router generation.
@@ -165,11 +167,15 @@ func templateFunctions() template.FuncMap {
 				},
 			}
 		},
-		"op_elem": func(op *ir.Operation, cfg TemplateConfig) OperationElem {
-			return OperationElem{
+		"op_elem": func(op *ir.Operation, cfg TemplateConfig, serverName ...string) OperationElem {
+			elem := OperationElem{
 				Operation: op,
 				Config:    cfg,
 			}
+			if len(serverName) > 0 {
+				elem.ServerName = serverName[0]
+			}
+			return elem
 		},
 		"ir_media": func(e ir.Encoding, t *ir.Type) ir.Media {
 			return ir.Media{

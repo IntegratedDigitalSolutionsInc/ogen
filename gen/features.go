@@ -129,6 +129,10 @@ var (
 		"server/response/validation",
 		`Enables validation of server responses`,
 	}
+	ServerPerOperationGroup = Feature{
+		"server/per-operation-group",
+		`Enables generation of separate server structs for each operation group`,
+	}
 	OgenOtel = Feature{
 		"ogen/otel",
 		`Enables OpenTelemetry integration`,
@@ -164,6 +168,7 @@ var AllFeatures = []Feature{
 	ClientRequestValidation,
 	ClientEditors,
 	ServerResponseValidation,
+	ServerPerOperationGroup,
 	OgenOtel,
 	OgenUnimplemented,
 	DebugExampleTests,

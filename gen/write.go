@@ -26,6 +26,7 @@ type TemplateConfig struct {
 	Operations        []*ir.Operation
 	DefaultOperations []*ir.Operation
 	OperationGroups   []*ir.OperationGroup
+	ServerGroups      []ServerGroup
 	Webhooks          []*ir.Operation
 	Types             map[string]*ir.Type
 	Interfaces        map[string]*ir.Type
@@ -47,6 +48,7 @@ type TemplateConfig struct {
 	RequestValidationEnabled  bool
 	ResponseValidationEnabled bool
 	EditorsEnabled            bool
+	ServerPerOperationGroup   bool
 
 	skipTestRegex *regexp.Regexp
 }
@@ -258,6 +260,7 @@ func (g *Generator) WriteSource(fs FileSystem, pkgName string) error {
 		Operations:                g.operations,
 		DefaultOperations:         g.defaultOperations,
 		OperationGroups:           g.operationGroups,
+		ServerGroups:              nil, // Will be populated below if needed
 		Webhooks:                  g.webhooks,
 		Types:                     types,
 		Interfaces:                interfaces,
@@ -278,6 +281,7 @@ func (g *Generator) WriteSource(fs FileSystem, pkgName string) error {
 		RequestValidationEnabled:  features.Has(ClientRequestValidation),
 		ResponseValidationEnabled: features.Has(ServerResponseValidation),
 		EditorsEnabled:            features.Has(ClientEditors),
+		ServerPerOperationGroup:   features.Has(ServerPerOperationGroup),
 		// Unused for now.
 		skipTestRegex: nil,
 	}
@@ -291,6 +295,11 @@ func (g *Generator) WriteSource(fs FileSystem, pkgName string) error {
 				break
 			}
 		}
+	}
+
+	// Build server groups if the feature is enabled
+	if cfg.ServerPerOperationGroup && cfg.PathsServerEnabled {
+		cfg.ServerGroups = BuildServerGroups(g.operationGroups, g.router)
 	}
 
 	grp, ctx := errgroup.WithContext(context.Background())

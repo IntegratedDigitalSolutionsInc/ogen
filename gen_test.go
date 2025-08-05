@@ -210,6 +210,12 @@ func TestNegative(t *testing.T) {
 		if strings.Contains(dir, "convenient_errors") {
 			require.NoError(t, opt.Generator.ConvenientErrors.Set("on"))
 		}
+		if strings.Contains(name, "test_operation_groups_missing") {
+			if opt.Generator.Features == nil {
+				opt.Generator.Features = &gen.FeatureOptions{}
+			}
+			require.NoError(t, opt.Generator.Features.Enable.Enable("server/per-operation-group"))
+		}
 
 		_, err = gen.NewGenerator(spec, opt)
 		a.Error(err)

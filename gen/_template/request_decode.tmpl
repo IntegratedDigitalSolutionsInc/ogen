@@ -3,22 +3,34 @@
 {{ template "header" $ }}
 
 {{- if $.PathsServerEnabled }}
-{{- range $op := $.Operations }}{{ if $op.Request }}
-	{{ template "request_decoders/operation" $op }}
+{{- if $.ServerPerOperationGroup }}
+{{- /* Generate request decoders for each server group */}}
+{{- range $group := $.ServerGroups }}
+{{- range $op := $group.Operations }}{{ if $op.Request }}
+	{{ template "request_decoders/operation" op_elem $op $ $group.ServerName }}
 {{ end }}{{ end }}
+{{- end }}
+{{- else }}
+{{- /* Generate request decoders for single server (default) */}}
+{{- range $op := $.Operations }}{{ if $op.Request }}
+	{{ template "request_decoders/operation" op_elem $op $ "Server" }}
+{{ end }}{{ end }}
+{{- end }}
 {{- end }}
 
 {{- if $.WebhookServerEnabled }}
 {{- range $op := $.Webhooks }}{{ if $op.Request }}
-	{{ template "request_decoders/operation" $op }}
+	{{ template "request_decoders/operation" op_elem $op $ "WebhookServer" }}
 {{ end }}{{ end }}
 {{- end }}
 
 {{ end }}
 
 {{ define "request_decoders/operation" }}
-{{- /*gotype: github.com/ogen-go/ogen/gen/ir.Operation*/ -}}{{ $op := $ }}
-func (s *{{ if $op.WebhookInfo }}Webhook{{ end }}Server) decode{{ $op.Name }}Request(r *http.Request) (
+{{- /*gotype: github.com/ogen-go/ogen/gen.OperationElem*/ -}}
+{{- $op := $.Operation }}
+{{- $serverName := $.ServerName }}
+func (s *{{ if $op.WebhookInfo }}WebhookServer{{ else if $serverName }}{{ $serverName }}{{ else }}Server{{ end }}) decode{{ $op.Name }}Request(r *http.Request) (
 	req {{ $op.Request.GoType }},
 	close func() error,
 	rerr error,
@@ -354,4 +366,3 @@ func (s *{{ if $op.WebhookInfo }}Webhook{{ end }}Server) decode{{ $op.Name }}Req
 {{- end }}
 
 {{- end }}
-

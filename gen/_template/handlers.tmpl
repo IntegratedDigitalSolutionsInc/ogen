@@ -18,14 +18,24 @@ func recordError(string, error) {}
 {{- end }}
 
 {{- if $.PathsServerEnabled }}
-{{- range $op := $.Operations }}
-	{{- template "handlers/operation" op_elem $op $ }}
+{{- if $.ServerPerOperationGroup }}
+{{- /* Generate handlers for each server group */}}
+{{- range $group := $.ServerGroups }}
+{{- range $op := $group.Operations }}
+	{{- template "handlers/operation" op_elem $op $ $group.ServerName }}
 {{ end }}
+{{- end }}
+{{- else }}
+{{- /* Generate handlers for single server (default) */}}
+{{- range $op := $.Operations }}
+	{{- template "handlers/operation" op_elem $op $ "Server" }}
+{{ end }}
+{{- end }}
 {{- end }}
 
 {{- if $.WebhookServerEnabled }}
 {{- range $op := $.Webhooks }}
-	{{- template "handlers/operation" op_elem $op $ }}
+	{{- template "handlers/operation" op_elem $op $ "WebhookServer" }}
 {{ end }}
 {{- end }}
 
@@ -34,10 +44,11 @@ func recordError(string, error) {}
 {{ define "handlers/operation" }}
 {{- /*gotype: github.com/ogen-go/ogen/gen.OperationElem*/ -}}{{ $op := $.Operation }}
 {{- $otel := $.Config.OpenTelemetryEnabled }}
+{{- $serverName := $.ServerName }}
 // handle{{ $op.Name }}Request handles {{ $op.PrettyOperationID }} operation.
 //
 {{- template "godoc_op" $op }}
-func (s *{{ if $op.WebhookInfo }}Webhook{{ end }}Server) handle{{ $op.Name }}Request(args [{{ $op.PathParamsCount }}]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+func (s *{{ if $op.WebhookInfo }}WebhookServer{{ else }}{{ $serverName }}{{ end }}) handle{{ $op.Name }}Request(args [{{ $op.PathParamsCount }}]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	statusWriter := &codeRecorder{ResponseWriter: w}
 	w = statusWriter
     {{- if $.Config.OpenTelemetryEnabled }}

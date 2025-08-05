@@ -1,0 +1,135 @@
+openapi: 3.0.3
+info:
+  title: Operation Groups Test API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      x-ogen-operation-group: Users
+      operationId: listUsers
+      summary: List all users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      x-ogen-operation-group: Users
+      operationId: createUser
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /users/{id}:
+    get:
+      x-ogen-operation-group: Users
+      operationId: getUser
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+  /images:
+    get:
+      x-ogen-operation-group: Images
+      operationId: listImages
+      summary: List all images
+      responses:
+        "200":
+          description: List of images
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Image"
+    post:
+      x-ogen-operation-group: Images
+      operationId: uploadImage
+      summary: Upload a new image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Image uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Image"
+  /images/{id}:
+    get:
+      x-ogen-operation-group: Images
+      operationId: getImage
+      summary: Get an image by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Image found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Image"
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+      required:
+        - id
+        - name
+        - email
+    Image:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        size:
+          type: integer
+      required:
+        - id
+        - url
+        - size

@@ -40,6 +40,45 @@ type {{ $group.Name }}Handler interface {
 
 {{- end}}
 
+{{- if $.ServerPerOperationGroup }}
+{{- /* Generate server structs for each operation group */}}
+{{- range $group := $.ServerGroups }}
+// {{ $group.ServerName }} implements http server based on OpenAPI v3 specification and
+// calls {{ $group.Name }}Handler to handle requests.
+type {{ $group.ServerName }} struct {
+	h {{ $group.Name }}Handler
+	{{- if $.Securities }}
+	sec SecurityHandler
+	{{- end }}
+	baseServer
+}
+
+// New{{ $group.ServerName }} creates new {{ $group.ServerName }}.
+func New{{ $group.ServerName }}(h {{ $group.Name }}Handler, {{- if $.Securities }}sec SecurityHandler,{{- end }}opts ...ServerOption) (*{{ $group.ServerName }}, error) {
+	s, err := newServerConfig(opts...).baseServer()
+	if err != nil {
+		return nil, err
+	}
+	return &{{ $group.ServerName }}{
+		h: h,
+		{{- if $.Securities }}
+		sec: sec,
+		{{- end }}
+		baseServer: s,
+	}, nil
+}
+
+{{- if $.Error }}
+// NewError creates {{ $.ErrorGoType }} from error returned by handler.
+//
+// Used for common default response.
+func (s *{{ $group.ServerName }}) NewError(ctx context.Context, err error) {{ $.ErrorGoType }} {
+	return s.h.(Handler).NewError(ctx, err)
+}
+{{- end }}
+
+{{- end }}
+{{- else }}
 // Server implements http server based on OpenAPI v3 specification and
 // calls Handler to handle requests.
 type Server struct {
@@ -64,6 +103,7 @@ func NewServer(h Handler, {{- if $.Securities }}sec SecurityHandler,{{- end }}op
 		baseServer: s,
 	}, nil
 }
+{{- end }}
 {{- end }}
 
 {{- if $.WebhookServerEnabled }}

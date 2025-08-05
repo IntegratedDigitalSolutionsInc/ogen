@@ -2,14 +2,36 @@
 {{- /*gotype: github.com/ogen-go/ogen/gen.TemplateConfig*/ -}}
 {{ template "header" $ }}
 
+{{- if $.PathsServerEnabled }}
+{{- if $.ServerPerOperationGroup }}
+{{- /* Generate unimplemented handlers for each operation group */}}
+{{- range $group := $.OperationGroups }}
+
+// Unimplemented{{ $group.Name }}Handler is no-op {{ $group.Name }}Handler which returns http.ErrNotImplemented.
+type Unimplemented{{ $group.Name }}Handler struct{}
+
+var _ {{ $group.Name }}Handler = Unimplemented{{ $group.Name }}Handler{}
+
+{{- range $op := $group.Operations }}
+// {{ $op.Name }} implements {{ $op.PrettyOperationID }} operation.
+//
+{{- template "godoc_op" $op }}
+func (Unimplemented{{ $group.Name }}Handler) {{ $op.Name }}(ctx context.Context {{ if $op.Request }}, req {{ $op.Request.GoType }}{{ end }}{{ if $op.Params }}, params {{ $op.Name }}Params {{ end }}) {{ $op.Responses.ResultTuple "r" "" }} {
+	return {{ if $op.Responses.DoPass }}r,{{ end }} ht.ErrNotImplemented
+}
+{{- end }}
+{{- end }}
+
+{{- else }}
+{{- /* Generate single unimplemented handler (default) */}}
+
 // UnimplementedHandler is no-op Handler which returns http.ErrNotImplemented.
 type UnimplementedHandler struct{}
 
-{{- if $.PathsServerEnabled }}
 {{- with $ops := $.Operations }}
 var _ Handler = UnimplementedHandler{}
 {{- range $op := $ops }}
-    {{- template "unimplemented/operation" $op }}
+    {{- template "unimplemented/operation" op_elem $op $ "UnimplementedHandler" }}
 {{- end }}
 {{- end }}
 
@@ -25,12 +47,13 @@ func (UnimplementedHandler) NewError(ctx context.Context, err error) (r {{ $.Err
 }
 {{- end }}
 {{- end }}
+{{- end }}
 
 {{- if $.WebhookServerEnabled }}
 {{- with $ops := $.Webhooks }}
 var _ WebhookHandler = UnimplementedHandler{}
 {{- range $op := $ops }}
-    {{- template "unimplemented/operation" $op }}
+    {{- template "unimplemented/operation" op_elem $op $ "UnimplementedHandler" }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -38,11 +61,13 @@ var _ WebhookHandler = UnimplementedHandler{}
 {{ end }}
 
 {{ define "unimplemented/operation" }}
-{{- /*gotype: github.com/ogen-go/ogen/gen/ir.Operation*/ -}}{{ $op := $ }}
+{{- /*gotype: github.com/ogen-go/ogen/gen.OperationElem*/ -}}
+{{- $op := $.Operation }}
+{{- $receiver := $.ServerName }}
 // {{ $op.Name }} implements {{ $op.PrettyOperationID }} operation.
 //
 {{- template "godoc_op" $op }}
-func (UnimplementedHandler) {{ $op.Name }}(ctx context.Context {{ if $op.Request }}, req {{ $op.Request.GoType }}{{ end }}{{ if $op.Params }}, params {{ $op.Name }}Params {{ end }}) {{ $op.Responses.ResultTuple "r" "" }} {
+func ({{ $receiver }}) {{ $op.Name }}(ctx context.Context {{ if $op.Request }}, req {{ $op.Request.GoType }}{{ end }}{{ if $op.Params }}, params {{ $op.Name }}Params {{ end }}) {{ $op.Responses.ResultTuple "r" "" }} {
 	return {{ if $op.Responses.DoPass }}r,{{ end }} ht.ErrNotImplemented
 }
 {{ end }}

@@ -1,0 +1,46 @@
+openapi: 3.0.3
+info:
+  title: Operation Groups Test API - Missing Group
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      x-ogen-operation-group: Users
+      operationId: listUsers
+      summary: List all users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+  /health:
+    get:
+      # Missing x-ogen-operation-group
+      operationId: healthCheck
+      summary: Health check endpoint
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - name

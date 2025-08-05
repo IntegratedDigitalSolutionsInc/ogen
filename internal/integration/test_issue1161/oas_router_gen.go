@@ -10,6 +10,42 @@ import (
 	"github.com/ogen-go/ogen/uri"
 )
 
+// Route is route object.
+type Route struct {
+	name        string
+	summary     string
+	operationID string
+	pathPattern string
+	count       int
+	args        [1]string
+}
+
+// Name returns ogen operation name.
+//
+// It is guaranteed to be unique and not empty.
+func (r Route) Name() string {
+	return r.name
+}
+
+// Summary returns OpenAPI summary.
+func (r Route) Summary() string {
+	return r.summary
+}
+
+// OperationID returns OpenAPI operationId.
+func (r Route) OperationID() string {
+	return r.operationID
+}
+
+// PathPattern returns OpenAPI path.
+func (r Route) PathPattern() string {
+	return r.pathPattern
+}
+
+// Args returns parsed arguments.
+func (r Route) Args() []string {
+	return r.args[:r.count]
+}
 func (s *Server) cutPrefix(path string) (string, bool) {
 	prefix := s.cfg.Prefix
 	if prefix == "" {
@@ -157,43 +193,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	s.notFound(w, r)
-}
-
-// Route is route object.
-type Route struct {
-	name        string
-	summary     string
-	operationID string
-	pathPattern string
-	count       int
-	args        [1]string
-}
-
-// Name returns ogen operation name.
-//
-// It is guaranteed to be unique and not empty.
-func (r Route) Name() string {
-	return r.name
-}
-
-// Summary returns OpenAPI summary.
-func (r Route) Summary() string {
-	return r.summary
-}
-
-// OperationID returns OpenAPI operationId.
-func (r Route) OperationID() string {
-	return r.operationID
-}
-
-// PathPattern returns OpenAPI path.
-func (r Route) PathPattern() string {
-	return r.pathPattern
-}
-
-// Args returns parsed arguments.
-func (r Route) Args() []string {
-	return r.args[:r.count]
 }
 
 // FindRoute finds Route for given method and path.
@@ -350,6 +349,7 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 			}
 
 		}
+
 	}
 	return r, false
 }
